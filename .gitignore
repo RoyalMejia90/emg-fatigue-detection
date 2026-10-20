@@ -1,0 +1,32 @@
+# Raw datasets and private metadata
+DATA/
+META/
+PROCESSED/
+FIGURES/
+FIGURES_PAT_SUMMARIZE/
+FIGURES_REPETITIONS/
+
+# Personal work files
+PROJECT_NOTES.md
+PAPER.md
+
+# Local spreadsheets
+*.xlsx
+1RM Testing Results.xlsx
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+
+# VS Code
+.vscode/
+
+# Operating system files
+Thumbs.db
+.DS_Store
+`

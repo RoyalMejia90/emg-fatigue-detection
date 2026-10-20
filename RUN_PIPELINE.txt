@@ -1,0 +1,33 @@
+Execution Order
+
+1) Preprocessing
+
+python src\preprocessing.py
+
+2) Repetition detection
+
+python src\repetition_detection.py
+
+3) Feature extraction (11 features)
+
+python src\feature_extraction.py
+
+4) Feature trajectories (Figure 2)
+
+python src\feature_trajectories.py
+
+5) Validation (Generates fatigue_dataset.csv)
+
+python src\validation.py
+
+6) Models (Nested LOSO, Figures 3-6, Exports)
+
+python src\models.py
+
+7) Label Analysis (Sections 3.4 & 7.1)
+
+python src\label_analysis.py
+
+2.5) Patient Summaries (Opcional, visual)
+
+python src\patient_summarize.py
