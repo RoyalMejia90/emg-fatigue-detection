@@ -9,6 +9,10 @@ Outputs (RESULTS/)
   per_class_best.csv, importance.csv, ablation.csv, run_info.txt
   within_set_trends_extended.csv
 
+Deployable model (MODELS/)
+  best_model_<name>.pkl      joblib payload: model, features, metrics, metadata
+  best_model_metadata.json   human-readable metadata of the exported model
+
 Figures (FIGURES_RESULTS/)
   Figure3_LOSO_Nested_Scheme.png
   Figure4_Confusion_Matrix_Best.png
@@ -23,7 +27,9 @@ import os
 import json
 import time
 import platform
+from datetime import datetime
 
+import joblib
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -56,6 +62,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESULTS_DIR = os.path.join(ROOT, "RESULTS")
 FIGURES_DIR = os.path.join(ROOT, "FIGURES_RESULTS")
 os.makedirs(FIGURES_DIR, exist_ok=True)
+MODELS_DIR = os.path.join(ROOT, "MODELS")
+os.makedirs(MODELS_DIR, exist_ok=True)
 
 RANDOM_STATE = 42
 INNER_SPLITS = 5
@@ -324,6 +332,23 @@ def figure6(imp, abl, path):
     fig.savefig(path, dpi=300)
     plt.close(fig)
 
+# Final deployable model
+
+def train_final_model(df, spec, features):
+    """
+    Train deployable model on entire dataset.
+    """
+    model = build(spec)
+
+    fit(
+        model,
+        df[features],
+        df["fatigue_label"],
+        df["subject_id"]
+    )
+
+    return model
+
 # Main
 
 if __name__ == "__main__":
@@ -431,6 +456,49 @@ if __name__ == "__main__":
     figure5(bf, cf, best, comp, os.path.join(FIGURES_DIR, "Figure5_Per_Subject_Best.png"))
     if len(abl):
         figure6(imp, abl, os.path.join(FIGURES_DIR, "Figure6_Importance_Ablation.png"))
+
+    # Deployable model: refit best model on the ENTIRE dataset and serialise it
+    final_model = train_final_model(df, best_spec, best_feats)
+    best_row = summary.loc[summary["model"] == best].iloc[0]
+    train_subjects = [int(s) if isinstance(s, (int, np.integer)) else str(s)
+                      for s in sorted(df["subject_id"].unique())]
+    saved_at = datetime.now().isoformat(timespec="seconds")
+    best_params = (json.dumps(final_model.best_params_)
+                   if isinstance(final_model, GridSearchCV) else "")
+
+    payload = {
+        "model": final_model,
+        "model_name": best,
+        "features": list(best_feats),
+        "f1_mean": float(best_row["f1_mean"]),
+        "f1_std": float(best_row["f1_std"]),
+        "roc_auc_mean": float(best_row["roc_auc_mean"]),
+        "train_subjects": train_subjects,
+        "train_samples": int(len(df)),
+        "best_params": best_params,
+        "sklearn_version": sklearn.__version__,
+        "saved_at": saved_at,
+    }
+    model_path = os.path.join(MODELS_DIR, f"best_model_{best}.pkl")
+    joblib.dump(payload, model_path)
+
+    metadata = {
+        "best_model": best,
+        "model_file": os.path.basename(model_path),
+        "features": list(best_feats),
+        "train_subjects": train_subjects,
+        "n_train_subjects": len(train_subjects),
+        "train_samples": int(len(df)),
+        "f1_mean": float(best_row["f1_mean"]),
+        "f1_std": float(best_row["f1_std"]),
+        "roc_auc_mean": float(best_row["roc_auc_mean"]),
+        "best_params": best_params,
+        "sklearn_version": sklearn.__version__,
+        "saved_at": saved_at,
+    }
+    with open(os.path.join(MODELS_DIR, "best_model_metadata.json"), "w", encoding="utf-8") as fh:
+        json.dump(metadata, fh, indent=4, ensure_ascii=False)
+    print(f"Deployable model saved: {model_path}")
 
     elapsed = time.time() - t0
     with open(os.path.join(RESULTS_DIR, "run_info.txt"), "w") as fh:

@@ -1,0 +1,33 @@
+{
+    "best_model": "Logistic_RMS_MDF",
+    "model_file": "best_model_Logistic_RMS_MDF.pkl",
+    "features": [
+        "rms",
+        "mdf"
+    ],
+    "train_subjects": [
+        "Pat01",
+        "Pat02",
+        "Pat03",
+        "Pat04",
+        "Pat05",
+        "Pat06",
+        "Pat07",
+        "Pat08",
+        "Pat09",
+        "Pat10",
+        "Pat11",
+        "Pat12",
+        "Pat13",
+        "Pat14",
+        "Pat15"
+    ],
+    "n_train_subjects": 15,
+    "train_samples": 1563,
+    "f1_mean": 0.6048859369878964,
+    "f1_std": 0.1413896081909299,
+    "roc_auc_mean": 0.8107247897185849,
+    "best_params": "",
+    "sklearn_version": "1.8.0",
+    "saved_at": "2026-10-20T23:21:22"
+}
